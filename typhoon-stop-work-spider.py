@@ -25,7 +25,7 @@ class TyphoonStopWorkSpider(scrapy.Spider):
     KAFKA_SERVER_IP = '59.127.187.54'
     KAFKA_SERVER_PORT = '9092'
     KAFKA_TOPIC = 'typhon_dayoff_announcement'
-    producer = KafkaProducer(bootstrap_servers=['59.127.187.54:9092'])
+#    producer = KafkaProducer(bootstrap_servers=['59.127.187.54:9092'])
 
     #爬出人事行政總處網頁資訊
     def parse(self,response):
@@ -64,8 +64,15 @@ class TyphoonStopWorkSpider(scrapy.Spider):
         parse_body_content = Selector(text=body_content).xpath('//table/tbody/tr/td/font/h2/text()')
         if not parse_body_content:
             parse_detail = ''
-            for parse_body_content in Selector(text=body_content).xpath('//table/tbody/tr/td/font/text()'):
-                parse_detail += parse_body_content.extract()+","
+            for parse_body_content in Selector(text=body_content).xpath('//table/tbody/tr'):
+                counter = 0
+                for parse_table_td_font in Selector(text=parse_body_content.extract()).xpath('//td/font/text()'):
+#                    parse_detail += parse_table_td_font.extract() +','
+                    if counter == 0:
+                        parse_detail += ';' + parse_table_td_font.extract() +';'
+                    else:
+                        parse_detail += parse_table_td_font.extract() + ','
+                    counter = counter+1
             self.parse_to_json(parse_detail,update_time)
         else:
     #            print "parse data : " + parse_body_content[0].extract()
@@ -81,24 +88,31 @@ class TyphoonStopWorkSpider(scrapy.Spider):
         return o.__dict__
 
     def parse_to_json(self,parse_detail,update_time):
-        parse_detail_list = parse_detail.split(',')
+        
+#        print parse_detail
+        
+        parse_detail_list = parse_detail.split(';')
+        
+#        刪除資料來源字串
+        del parse_detail_list[0]
+#        刪除空字串
+        del parse_detail_list[1]
 
         dayoff_list = []
-
-        for index in range(len(parse_detail_list)-1):
-            if index == 0:
-                print parse_detail_list[index]
-            elif index%2 == 1:
+        
+        for index in range(len(parse_detail_list)):
+            if index !=0 and index%2 == 1:
                 location = parse_detail_list[index]
-            elif index%2 == 0:
-                dayoff_list.append(TyphoonMessage(location, parse_detail_list[index].replace(' ','')))
+            elif index !=0 and index%2 == 0:
+                dayoff_list.append(TyphoonMessage(location, parse_detail_list[index].replace(' ','').replace(",","")))
 
         #日期處理
         date = update_time.split('：')[1].replace(" ","");    
 
         typhoonJsonObj = TyphoonJson(time.mktime(time.strptime(date , "%Y/%m/%d%H:%M:%S")),dayoff_list)
 
-#        typhoonJson = json.dumps(typhoonJsonObj, default=self.jdefault , ensure_ascii=False)
+        typhoonJson = json.dumps(typhoonJsonObj, default=self.jdefault , ensure_ascii=False, indent = 4)
+#        print typhoonJson
         self.sendMsgToKafka(typhoonJsonObj)
         
     def sendMsgToKafka(self, typhoonJsonObj):

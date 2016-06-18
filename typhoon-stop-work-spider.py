@@ -21,10 +21,12 @@ class TyphoonMessage(object):
 class TyphoonStopWorkSpider(scrapy.Spider):
   
     name = 'typhoonstopworkspider'
-    start_urls = ['http://www.dgpa.gov.tw/nds.html']    
+    start_urls = ['http://web.dgpa.gov.tw/public/Attachment/59291655620.html']    
     KAFKA_SERVER_IP = '59.127.187.54'
     KAFKA_SERVER_PORT = '9092'
     KAFKA_TOPIC = 'typhon_dayoff_announcement'
+    
+    UPDTAE_FILE_LOG = './update_time.txt'
 #    producer = KafkaProducer(bootstrap_servers=['59.127.187.54:9092'])
 
     #爬出人事行政總處網頁資訊
@@ -36,7 +38,7 @@ class TyphoonStopWorkSpider(scrapy.Spider):
 
     #確認資訊更新時間
     def check_update_time(self,body_content):
-        if os.path.exists('./update_time.txt'):
+        if os.path.exists(UPDTAE_FILE_LOG):
             text_file = codecs.open('update_time.txt', 'r', 'utf-8')
             parse_update_time = Selector(text=body_content).xpath('//table/tbody/tr/td/p/font/text()')
             if parse_update_time[2].extract() == unicode(text_file.readlines()[0].encode('utf-8'),'utf-8'):
@@ -53,7 +55,7 @@ class TyphoonStopWorkSpider(scrapy.Spider):
 
     #儲存更新時間        
     def save_update_time(self,update_time):
-        text_file = open("update_time.txt","w")
+        text_file = open(UPDTAE_FILE_LOG,"w")
         text_file.write(update_time)
         text_file.close()
         print 'Update time saved.'
@@ -112,7 +114,7 @@ class TyphoonStopWorkSpider(scrapy.Spider):
         typhoonJsonObj = TyphoonJson(time.mktime(time.strptime(date , "%Y/%m/%d%H:%M:%S")),dayoff_list)
 
         typhoonJson = json.dumps(typhoonJsonObj, default=self.jdefault , ensure_ascii=False, indent = 4)
-#        print typhoonJson
+        print typhoonJson
         self.sendMsgToKafka(typhoonJsonObj)
         
     def sendMsgToKafka(self, typhoonJsonObj):

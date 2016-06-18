@@ -38,7 +38,7 @@ class TyphoonStopWorkSpider(scrapy.Spider):
 
     #確認資訊更新時間
     def check_update_time(self,body_content):
-        if os.path.exists(UPDTAE_FILE_LOG):
+        if os.path.exists(self.UPDTAE_FILE_LOG):
             text_file = codecs.open('update_time.txt', 'r', 'utf-8')
             parse_update_time = Selector(text=body_content).xpath('//table/tbody/tr/td/p/font/text()')
             if parse_update_time[2].extract() == unicode(text_file.readlines()[0].encode('utf-8'),'utf-8'):
@@ -55,7 +55,7 @@ class TyphoonStopWorkSpider(scrapy.Spider):
 
     #儲存更新時間        
     def save_update_time(self,update_time):
-        text_file = open(UPDTAE_FILE_LOG,"w")
+        text_file = open(self.UPDTAE_FILE_LOG,"w")
         text_file.write(update_time)
         text_file.close()
         print 'Update time saved.'

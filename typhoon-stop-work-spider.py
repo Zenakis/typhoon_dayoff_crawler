@@ -26,7 +26,7 @@ class TyphoonStopWorkSpider(scrapy.Spider):
     KAFKA_SERVER_PORT = '9092'
     KAFKA_TOPIC = 'typhon_dayoff_announcement'
     
-    UPDTAE_FILE_LOG = './update_time.txt'
+    UPDATE_FILE_LOG = './update_time.txt'
 #    producer = KafkaProducer(bootstrap_servers=['59.127.187.54:9092'])
 
     #爬出人事行政總處網頁資訊
@@ -38,8 +38,8 @@ class TyphoonStopWorkSpider(scrapy.Spider):
 
     #確認資訊更新時間
     def check_update_time(self,body_content):
-        if os.path.exists(self.UPDTAE_FILE_LOG):
-            text_file = codecs.open('update_time.txt', 'r', 'utf-8')
+        if os.path.exists(self.UPDATE_FILE_LOG):
+            text_file = codecs.open(self.UPDATE_FILE_LOG, 'r', 'utf-8')
             parse_update_time = Selector(text=body_content).xpath('//table/tbody/tr/td/p/font/text()')
             if parse_update_time[2].extract() == unicode(text_file.readlines()[0].encode('utf-8'),'utf-8'):
                 print "There was nothing update..."
@@ -55,7 +55,7 @@ class TyphoonStopWorkSpider(scrapy.Spider):
 
     #儲存更新時間        
     def save_update_time(self,update_time):
-        text_file = open(self.UPDTAE_FILE_LOG,"w")
+        text_file = open(self.UPDATE_FILE_LOG,"w")
         text_file.write(update_time)
         text_file.close()
         print 'Update time saved.'

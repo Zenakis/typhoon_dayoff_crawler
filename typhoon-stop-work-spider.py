@@ -21,7 +21,7 @@ class TyphoonMessage(object):
 class TyphoonStopWorkSpider(scrapy.Spider):
   
     name = 'typhoonstopworkspider'
-    start_urls = ['http://web.dgpa.gov.tw/public/Attachment/59291655620.html']    
+    start_urls = ['http://www.dgpa.gov.tw/nds.html']    
     KAFKA_SERVER_IP = '59.127.187.54'
     KAFKA_SERVER_PORT = '9092'
     KAFKA_TOPIC = 'typhon_dayoff_announcement'

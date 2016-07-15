@@ -114,7 +114,7 @@ class TyphoonStopWorkSpider(scrapy.Spider):
         typhoonJsonObj = TyphoonJson(time.mktime(time.strptime(date , "%Y/%m/%d%H:%M:%S")),dayoff_list)
 
         typhoonJson = json.dumps(typhoonJsonObj, default=self.jdefault , ensure_ascii=False, indent = 4)
-        print typhoonJson
+#        print typhoonJson
         self.sendMsgToKafka(typhoonJsonObj)
         
     def sendMsgToKafka(self, typhoonJsonObj):

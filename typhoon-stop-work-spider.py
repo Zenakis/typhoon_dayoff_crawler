@@ -111,7 +111,7 @@ class TyphoonStopWorkSpider(scrapy.Spider):
         #日期處理
         date = update_time.split('：')[1].replace(" ","");
 
-        typhoonJsonObj = TyphoonJson(time.mktime(time.strptime(date , "%Y/%m/%d%H:%M:%S")),dayoff_list)
+        typhoonJsonObj = TyphoonJson(int(time.mktime(time.strptime(date , "%Y/%m/%d%H:%M:%S"))),dayoff_list)
 
         typhoonJson = json.dumps(typhoonJsonObj, default=self.jdefault , ensure_ascii=False, indent = 4)
 #        print typhoonJson
